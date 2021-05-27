@@ -65,6 +65,9 @@ implements Response.Listener<String>, Response.ErrorListener
             return;
         }
         Toast.makeText(this, "Login Successful", Toast.LENGTH_LONG).show();
+
+        Intent i = new Intent(this, MainActivity.class);
+        startActivity(i);
     }
 
     @Override
