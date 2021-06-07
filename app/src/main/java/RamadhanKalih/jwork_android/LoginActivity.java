@@ -14,6 +14,7 @@ import android.widget.Toast;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
@@ -57,16 +58,15 @@ implements Response.Listener<String>, Response.ErrorListener
 
     @Override
     public void onResponse(String response) {
+        Intent i = new Intent(this, MainActivity.class);
         try {
             JSONObject obj = new JSONObject(response);
-            if (obj == null) throw new RuntimeException();
+            i.putExtra("id", obj.getInt("id"));
         } catch (Exception e) {
             Toast.makeText(this, "Login Failed", Toast.LENGTH_LONG).show();
             return;
         }
         Toast.makeText(this, "Login Successful", Toast.LENGTH_LONG).show();
-
-        Intent i = new Intent(this, MainActivity.class);
         startActivity(i);
     }
 

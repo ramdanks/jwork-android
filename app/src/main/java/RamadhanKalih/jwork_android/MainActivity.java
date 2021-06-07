@@ -2,9 +2,12 @@ package RamadhanKalih.jwork_android;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -16,13 +19,19 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class MainActivity extends AppCompatActivity
-implements Response.ErrorListener, Response.Listener<String>
+implements Response.ErrorListener, Response.Listener<String>,
+ExpandableListView.OnChildClickListener
 {
+    HashSet<Integer> listRecruiterId = new HashSet<>();
     ArrayList<Recruiter> listRecruiter = new ArrayList<>();
     ArrayList<Job> listJobId = new ArrayList<>();
     HashMap<Recruiter, ArrayList<Job>> childMap = new HashMap<>();
+
+    private static Job selectedJob;
+    private static int jobseekerId;
 
     ExpandableListView listView;
     ExpandableListAdapter listAdapter;
@@ -31,10 +40,14 @@ implements Response.ErrorListener, Response.Listener<String>
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        // get id from login activity
+        jobseekerId = getIntent().getIntExtra("id", -1);
         // preparing list data
         refreshList();
     }
+
+    public static int getJobseekerId() { return jobseekerId; }
+    public static Job getSelectedJob() { return selectedJob; }
 
     protected void refreshList() {
         MenuRequest req = new MenuRequest(this, this);
@@ -74,7 +87,9 @@ implements Response.ErrorListener, Response.Listener<String>
                 );
 
                 listJobId.add(obj);
-                listRecruiter.add(recruiter);
+                // if recruiter id is not already in the list, insert
+                if (listRecruiterId.add(recruiter.getId()))
+                    listRecruiter.add(recruiter);
             }
         } catch (Exception e) { }
 
@@ -96,11 +111,19 @@ implements Response.ErrorListener, Response.Listener<String>
         listView = (ExpandableListView) findViewById(R.id.listView);
         listAdapter = new MainListAdapter(this, listRecruiter, childMap);
         listView.setAdapter(listAdapter);
+        listView.setOnChildClickListener(this);
     }
-
 
     @Override
     public void onErrorResponse(VolleyError error) {
+        Toast.makeText(this, "Connection Error", Toast.LENGTH_LONG);
+    }
 
+    @Override
+    public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+        selectedJob = childMap.get(listRecruiter.get(groupPosition)).get(childPosition);
+        Intent i = new Intent(this, ApplyJobActivity.class);
+        startActivity(i);
+        return true;
     }
 }
