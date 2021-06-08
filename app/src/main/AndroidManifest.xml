@@ -12,6 +12,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Jworkandroid"
         android:usesCleartextTraffic="true">
+        <activity android:name=".HistoryActivity"></activity>
+        <activity android:name=".JobSelesaiActivity" />
         <activity android:name=".ApplyJobActivity" />
         <activity android:name=".MainActivity" />
         <activity android:name=".RegisterActivity" />

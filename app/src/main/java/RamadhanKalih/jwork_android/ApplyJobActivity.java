@@ -4,6 +4,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.admin.DevicePolicyManager;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioGroup;
@@ -18,9 +21,12 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 public class ApplyJobActivity extends AppCompatActivity
-implements RadioGroup.OnCheckedChangeListener,
-Response.ErrorListener, Response.Listener<String>
+implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener,
+        TextWatcher
 {
     private RadioGroup group;
     private Job job;
@@ -47,6 +53,9 @@ Response.ErrorListener, Response.Listener<String>
         jfee.setText(String.valueOf(job.getFee()));
         jtot.setText("0");
 
+        findViewById(R.id.btnApply).setEnabled(false);
+        ((EditText) findViewById(R.id.etRefCode)).addTextChangedListener(this);
+
         findViewById(R.id.btnCount).setOnClickListener(this::onCountClick);
         findViewById(R.id.btnApply).setOnClickListener(this::onApplyClick);
     }
@@ -60,8 +69,7 @@ Response.ErrorListener, Response.Listener<String>
         etRefCode.setVisibility(visibility);
     }
 
-    public void onCountClick(View view)
-    {
+    public void onCountClick(View view) {
         TextView jtot  = findViewById(R.id.tvTotalFee);
         if (getRadioSelection() == EWALLET_ID)
         {
@@ -69,18 +77,37 @@ Response.ErrorListener, Response.Listener<String>
             String refCode = etRefCode.getText().toString();
             if (!refCode.isEmpty())
             {
-                BonusRequest req = new BonusRequest(refCode, this, this);
+                BonusRequest req = new BonusRequest(refCode, this::onCountResponse, this);
                 RequestQueue queue = Volley.newRequestQueue(this);
                 queue.add(req);
                 jtot.setText("Calculating...");
                 return;
             }
         }
+        findViewById(R.id.btnApply).setEnabled(true);
         jtot.setText(String.valueOf(job.getFee()));
     }
 
     public void onApplyClick(View view)
     {
+        ApplyJobRequest req = null;
+        int jobseekerId = MainActivity.getJobseekerId();
+        ArrayList<Integer> jobIdList = new ArrayList<>();
+        jobIdList.add(job.getId());
+
+        if (getRadioSelection() == BANK_ID)
+        {
+            req = new ApplyJobRequest(jobIdList, jobseekerId, this::onApplyResponse, this);
+        }
+        else
+        {
+            EditText etRefCode = findViewById(R.id.etRefCode);
+            String referralCode = etRefCode.getText().toString();
+            req = new ApplyJobRequest(jobIdList, jobseekerId, referralCode, this::onApplyResponse, this);
+        }
+
+        RequestQueue queue = Volley.newRequestQueue(this);
+        queue.add(req);
     }
 
     private int getRadioSelection() {
@@ -94,29 +121,51 @@ Response.ErrorListener, Response.Listener<String>
         Toast.makeText(this, "Connection Error", Toast.LENGTH_LONG).show();
     }
 
-    @Override
-    public void onResponse(String response) {
+    public void onApplyResponse(String response) {
+        String promptMessage = null;
+        promptMessage = response.isEmpty() ? "Request failed" : "Applied successfully";
+        Toast.makeText(this, promptMessage, Toast.LENGTH_LONG).show();
+    }
+
+    public void onCountResponse(String response) {
         int totalFee = job.getFee();
+        String promptMessage = null;
         try {
             if (response.isEmpty())
-                throw new Exception("Bonus is not exists!");
+                throw new Exception("Referral not exists!");
             // get as json object
             JSONObject obj = new JSONObject(response);
             // bonus needs to be active
             if (!obj.getBoolean("active"))
-                throw new Exception("Bonus is not active!");
+                throw new Exception("Referral not active!");
             // bonus min total fee should be <= totalFee
             if (obj.getInt("minTotalFee") > totalFee)
-                throw new Exception("Bonus requirements not met!");
+                throw new Exception("Referral requirements not met!");
             // if all requirements met, increase totalFee
             totalFee += obj.getInt("extraFee");
+            promptMessage = "Referral code applied!";
+            findViewById(R.id.btnApply).setEnabled(true);
         } catch (JSONException e) {
-            Toast.makeText(this, "Processing failed!", Toast.LENGTH_LONG).show();
+            promptMessage = "Processing failed!";
         } catch (Exception e) {
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+            promptMessage = e.getMessage();
         } finally {
+            Toast.makeText(this, promptMessage, Toast.LENGTH_LONG).show();
             TextView jtot = findViewById(R.id.tvTotalFee);
             jtot.setText(String.valueOf(totalFee));
         }
     }
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+        View view = findViewById(R.id.btnApply);
+        if (view.isEnabled())
+            view.setEnabled(false);
+    }
+
+    @Override
+    public void afterTextChanged(Editable s) {}
 }

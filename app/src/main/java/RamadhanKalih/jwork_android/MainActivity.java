@@ -44,12 +44,19 @@ ExpandableListView.OnChildClickListener
         jobseekerId = getIntent().getIntExtra("id", -1);
         // preparing list data
         refreshList();
+
+        findViewById(R.id.btnAppliedJob).setOnClickListener(this::onAppliedJobClick);
     }
 
     public static int getJobseekerId() { return jobseekerId; }
     public static Job getSelectedJob() { return selectedJob; }
 
-    protected void refreshList() {
+    private void onAppliedJobClick(View view) {
+        Intent i = new Intent(this, HistoryActivity.class);
+        startActivity(i);
+    }
+
+    private void refreshList() {
         MenuRequest req = new MenuRequest(this, this);
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(req);

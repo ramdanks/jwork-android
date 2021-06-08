@@ -38,6 +38,9 @@ implements Response.Listener<String>, Response.ErrorListener
         btnLogin = findViewById(R.id.btnLogin);
         tvRegister = findViewById(R.id.tvRegister);
 
+        etEmail.setText("ramadhan.kalih@ui.ac.id");
+        etPass.setText("Ramadhan123");
+
         btnLogin.setOnClickListener(this::onLoginClick);
         tvRegister.setOnClickListener(this::onRegisterClick);
     }
