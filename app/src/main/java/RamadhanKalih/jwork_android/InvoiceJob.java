@@ -9,6 +9,7 @@ public class InvoiceJob
     String type;
 
     String jobName;
+    String jobCategory;
     int jobFee;
 
     String referralCode = null;

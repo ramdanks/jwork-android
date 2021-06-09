@@ -5,10 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -28,23 +30,37 @@ public class HistoryActivity extends AppCompatActivity
 implements Response.ErrorListener, Response.Listener<String>,
 TabLayout.OnTabSelectedListener
 {
-    private static final int SEL_ONGOING = 0;
-    private static final int SEL_FINISHED = 1;
-    private static final int SEL_CANCELLED = 2;
+    public static final int SEL_ONGOING = 0;
+    public static final int SEL_FINISHED = 1;
+    public static final int SEL_CANCELLED = 2;
 
     private static InvoiceJob selectedItem;
-    private HistoryListAdapter[] adapterList = new HistoryListAdapter[3];
+    private static HistoryListAdapter[] adapterList = new HistoryListAdapter[3];
     private TabLayout tab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         refreshList();
 
         tab = (TabLayout) findViewById(R.id.tabHistory);
         tab.addOnTabSelectedListener(this);
+    }
+
+    public static InvoiceJob getSelectedItem() { return selectedItem; }
+
+    public static boolean swapCategory(int invId, int fromSel, int toSel) {
+        if (fromSel < SEL_ONGOING && toSel > SEL_CANCELLED)
+            return false;
+        InvoiceJob inv = adapterList[fromSel].removeItem(invId);
+        if (inv == null)
+            return false;
+        inv.status = toSel == SEL_CANCELLED ? "Cancelled" : "Finished";
+        adapterList[toSel].addItem(inv);
+        return true;
     }
 
     private void refreshList() {
@@ -53,13 +69,23 @@ TabLayout.OnTabSelectedListener
         queue.add(req);
     }
 
-    public static InvoiceJob getSelectedItem() { return selectedItem; }
-
     private void onClick(AdapterView<?> adapterView, View view, int i, long l) {
         int pos = tab.getSelectedTabPosition();
         selectedItem = (InvoiceJob) adapterList[pos].getItem(i);
         Intent intent = new Intent(this, JobSelesaiActivity.class);
+        // only ongoing invoice can be processed, else read only
+        boolean readOnly = pos == SEL_ONGOING ? false : true;
+        intent.putExtra("readOnly", readOnly);
         startActivity(intent);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            super.finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -100,6 +126,7 @@ TabLayout.OnTabSelectedListener
                     inv.recruiter = recJSON.getString("name");
                     inv.jobName = jobJSON.getString("name");
                     inv.jobFee = jobJSON.getInt("fee");
+                    inv.jobCategory = jobJSON.getString("category");
 
                     if (inv.status.equals("OnGoing"))        listItemOnGoing.add(inv);
                     else if (inv.status.equals("Finished"))  listItemFinished.add(inv);
@@ -122,6 +149,6 @@ TabLayout.OnTabSelectedListener
 
     @Override
     public void onErrorResponse(VolleyError error) {
-
+        Toast.makeText(this, "Connection Error", Toast.LENGTH_LONG).show();
     }
 }

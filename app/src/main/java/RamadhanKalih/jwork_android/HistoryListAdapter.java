@@ -21,20 +21,33 @@ public class HistoryListAdapter extends BaseAdapter
         this.listItem = listItem;
     }
 
-    @Override
-    public int getCount() {
-        return listItem.size();
+    public InvoiceJob removeItem(int invId) {
+        for (int i = 0; i < listItem.size(); i++)
+        {
+            InvoiceJob inv = listItem.get(i);
+            if (inv.id == invId)
+            {
+                listItem.remove(i);
+                super.notifyDataSetChanged();
+                return inv;
+            }
+        }
+        return null;
+    }
+
+    public void addItem(InvoiceJob inv) {
+        listItem.add(inv);
+        super.notifyDataSetChanged();
     }
 
     @Override
-    public Object getItem(int i) {
-        return listItem.get(i);
-    }
+    public int getCount() { return listItem.size(); }
 
     @Override
-    public long getItemId(int i) {
-        return i;
-    }
+    public Object getItem(int i) { return listItem.get(i); }
+
+    @Override
+    public long getItemId(int i) { return i; }
 
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
@@ -54,6 +67,34 @@ public class HistoryListAdapter extends BaseAdapter
         payment.setText(inv.type);
         date.setText(inv.date);
         detail.setText("Recruiter: " + inv.recruiter + ", Total Fee: " + inv.jobFee + inv.extraFee);
+
+        switch (inv.jobCategory)
+        {
+            case "WebDeveloper":
+                pict.setImageResource(R.drawable.webdeveloper);
+                break;
+            case "FrontEnd":
+                pict.setImageResource(R.drawable.frontend);
+                break;
+            case "BackEnd":
+                pict.setImageResource(R.drawable.backend);
+                break;
+            case "UI":
+                pict.setImageResource(R.drawable.ui);
+                break;
+            case "UX":
+                pict.setImageResource(R.drawable.ux);
+                break;
+            case "Devops":
+                pict.setImageResource(R.drawable.devops);
+                break;
+            case "DataScientist":
+                pict.setImageResource(R.drawable.datascientist);
+                break;
+            case "DataAnalyst":
+                pict.setImageResource(R.drawable.dataanalyst);
+                break;
+        }
 
         return view;
     }

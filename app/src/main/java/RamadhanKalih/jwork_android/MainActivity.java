@@ -123,7 +123,7 @@ ExpandableListView.OnChildClickListener
 
     @Override
     public void onErrorResponse(VolleyError error) {
-        Toast.makeText(this, "Connection Error", Toast.LENGTH_LONG);
+        Toast.makeText(this, "Connection Error", Toast.LENGTH_LONG).show();
     }
 
     @Override

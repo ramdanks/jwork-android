@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class JobBatalRequest extends StringRequest
 {
-    private static final String URL = "http://10.0.2.2/invoice/";
+    private static final String URL = "http://10.0.2.2/invoice/invoiceStatus/";
     private Map<String, String> params = new HashMap<>();
 
     public JobBatalRequest(int invoiceId,
