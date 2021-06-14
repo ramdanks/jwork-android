@@ -24,10 +24,10 @@ import javax.xml.transform.ErrorListener;
 public class JobSelesaiActivity extends AppCompatActivity
 implements Response.ErrorListener
 {
-    private int invoiceId;
     private static final int STATUS_CANCELLED = 0;
     private static final int STATUS_FINISHED = 1;
 
+    private InvoiceJob inv = null;
     private Button btnCancel;
     private Button btnFinish;
     private Button btnReturn;
@@ -38,8 +38,7 @@ implements Response.ErrorListener
         setContentView(R.layout.activity_selesai_job);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        InvoiceJob inv = HistoryActivity.getSelectedItem();
-        invoiceId = inv.id;
+        inv = HistoryActivity.getSelectedItem();
 
         setText(R.id.prRecruiter, inv.recruiter);
         setText(R.id.prInvoiceId, inv.id);
@@ -80,13 +79,13 @@ implements Response.ErrorListener
     }
 
     private void onCancelClick(View view) {
-        JobBatalRequest req = new JobBatalRequest(invoiceId, this::onCancelResponse, this);
+        JobBatalRequest req = new JobBatalRequest(inv.id, this::onCancelResponse, this);
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(req);
     }
 
     private void onFinishClick(View view) {
-        JobSelesaiRequest req = new JobSelesaiRequest(invoiceId, this::onFinishResponse, this);
+        JobSelesaiRequest req = new JobSelesaiRequest(inv.id, this::onFinishResponse, this);
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(req);
     }
@@ -121,10 +120,11 @@ implements Response.ErrorListener
         final int toSel = status == STATUS_CANCELLED ? HistoryActivity.SEL_CANCELLED : HistoryActivity.SEL_FINISHED;
         final String prompt = status == STATUS_CANCELLED ? "Sucessfully cancelled!" : "Sucessfully finished!";
         String statusText = status == STATUS_CANCELLED ? "Cancelled" : "Finished";
+        inv.status = statusText;
         // buat perubahan pada tampilan
         setText(R.id.prInvoiceStatus, statusText);
         Toast.makeText(this, prompt, Toast.LENGTH_LONG).show();
-        HistoryActivity.swapCategory(invoiceId, fromSel, toSel);
+        HistoryActivity.swapCategory(inv.id, fromSel, toSel);
     }
 
     @Override

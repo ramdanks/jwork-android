@@ -6,28 +6,45 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
+import android.widget.SearchView;
 import android.widget.TextView;
 
+import com.google.android.material.behavior.HideBottomViewOnScrollBehavior;
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MainListAdapter extends BaseExpandableListAdapter
+implements SearchView.OnQueryTextListener, Filterable
 {
-    private Context _context;
-    private ArrayList<Recruiter> _listDataHeader; // header titles
-    // child data in format of header title, child title
-    private HashMap<Recruiter, ArrayList<Job>> _listDataChild;
+    private static final boolean SEARCH_JOBNAME_ALTERNATIVE = true;
+
+    private Context context;
+    // seluruh header (group) yang dibangun melalui ctor
+    private List<Recruiter> listAllDataHeader;
+    // header yang ditampilkan menurut search view
+    private ArrayList<Recruiter> listDataHeader;
+    // seluruh peta data berupa recruiter dengan job-nya
+    private HashMap<Recruiter, ArrayList<Job>> listDataChild;
+    // filter
+    private Filter filter;
 
     public MainListAdapter(Context context, ArrayList<Recruiter> listDataHeader,
                            HashMap<Recruiter, ArrayList<Job>> listChildData) {
-        this._context = context;
-        this._listDataHeader = listDataHeader;
-        this._listDataChild = listChildData;
+        this.context = context;
+        this.listAllDataHeader = listDataHeader; // shallow copy
+        this.listDataHeader = new ArrayList<>(listDataHeader); // deep copy
+        this.listDataChild = listChildData;
     }
 
     @Override
     public Object getChild(int groupPosition, int childPosititon) {
-        return this._listDataChild.get(this._listDataHeader.get(groupPosition))
+        return this.listDataChild.get(listDataHeader.get(groupPosition))
                 .get(childPosititon).getName();
     }
 
@@ -43,13 +60,11 @@ public class MainListAdapter extends BaseExpandableListAdapter
         final String childText = (String) getChild(groupPosition, childPosition);
 
         if (convertView == null) {
-            LayoutInflater infalInflater = (LayoutInflater) this._context
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            LayoutInflater infalInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = infalInflater.inflate(R.layout.layout_job, null);
         }
 
-        TextView txtListChild = (TextView) convertView
-                .findViewById(R.id.lblListItem);
+        TextView txtListChild = (TextView) convertView.findViewById(R.id.lblListItem);
 
         txtListChild.setText(childText);
         return convertView;
@@ -57,33 +72,27 @@ public class MainListAdapter extends BaseExpandableListAdapter
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return this._listDataChild.get(this._listDataHeader.get(groupPosition))
-                .size();
+        return listDataChild.get(listDataHeader.get(groupPosition)).size();
     }
 
     @Override
     public Object getGroup(int groupPosition) {
-        return this._listDataHeader.get(groupPosition).getName();
+        return listDataHeader.get(groupPosition).getName();
     }
 
     @Override
-    public int getGroupCount() {
-        return this._listDataHeader.size();
-    }
+    public int getGroupCount() { return listDataHeader.size(); }
 
     @Override
-    public long getGroupId(int groupPosition) {
-        return groupPosition;
-    }
+    public long getGroupId(int groupPosition) { return groupPosition; }
 
     @Override
     public View getGroupView(int groupPosition, boolean isExpanded,
                              View convertView, ViewGroup parent) {
         String headerTitle = (String) getGroup(groupPosition);
         if (convertView == null) {
-            LayoutInflater infalInflater = (LayoutInflater) this._context
-                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = infalInflater.inflate(R.layout.layout_recruiter, null);
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            convertView = inflater.inflate(R.layout.layout_recruiter, null);
         }
 
         TextView lblListHeader = (TextView) convertView.findViewById(R.id.lblListHeader);
@@ -94,12 +103,62 @@ public class MainListAdapter extends BaseExpandableListAdapter
     }
 
     @Override
-    public boolean hasStableIds() {
+    public boolean hasStableIds() { return false; }
+
+    @Override
+    public boolean isChildSelectable(int groupPosition, int childPosition) { return true; }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) { return false; }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        getFilter().filter(newText);
         return false;
     }
 
     @Override
-    public boolean isChildSelectable(int groupPosition, int childPosition) {
-        return true;
+    public Filter getFilter() {
+        if (filter == null) {
+            filter = new Filter() {
+                @Override
+                protected FilterResults performFiltering(CharSequence constraint) {
+                    // initiate object with initial size
+                    List<Recruiter> filtered = new ArrayList<>(listAllDataHeader.size());
+                    // logic
+                    if (constraint == null || constraint.length() == 0)
+                        filtered.addAll(listAllDataHeader);
+                    else {
+                        for (Recruiter r : listAllDataHeader) {
+                            if (r.getName().contains(constraint))
+                                filtered.add(r);
+                        }
+                    }
+                    // apabila tidak ada recruiter tsb, maka cari sebagai jobname
+                    if (SEARCH_JOBNAME_ALTERNATIVE) {
+                        if (filtered.isEmpty()) {
+                            for (Recruiter r : listAllDataHeader) {
+                                ArrayList<Job> jobList = listDataChild.get(r);
+                                for (Job j : jobList) {
+                                    if (j.getName().contains(constraint))
+                                        filtered.add(r);
+                                }
+                            }
+                        }
+                    }
+                    FilterResults res = new FilterResults();
+                    res.values = filtered;
+                    return res;
+                }
+
+                @Override
+                protected void publishResults(CharSequence constraint, FilterResults results) {
+                    listDataHeader.clear();
+                    listDataHeader.addAll((List) results.values);
+                    notifyDataSetChanged();
+                }
+            };
+        }
+        return filter;
     }
 }

@@ -4,9 +4,20 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.WorkSource;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.SearchView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
@@ -25,16 +36,18 @@ public class MainActivity extends AppCompatActivity
 implements Response.ErrorListener, Response.Listener<String>,
 ExpandableListView.OnChildClickListener
 {
-    HashSet<Integer> listRecruiterId = new HashSet<>();
-    ArrayList<Recruiter> listRecruiter = new ArrayList<>();
-    ArrayList<Job> listJobId = new ArrayList<>();
-    HashMap<Recruiter, ArrayList<Job>> childMap = new HashMap<>();
+    private HashSet<Integer> listRecruiterId = new HashSet<>();
+    private ArrayList<Recruiter> listRecruiter = new ArrayList<>();
+    private ArrayList<Job> listJobId = new ArrayList<>();
+    private HashMap<Recruiter, ArrayList<Job>> childMap = new HashMap<>();
 
     private static Job selectedJob;
     private static int jobseekerId;
 
-    ExpandableListView listView;
-    ExpandableListAdapter listAdapter;
+    private SearchView searchView;
+
+    private ExpandableListView listView;
+    private MainListAdapter listAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +59,17 @@ ExpandableListView.OnChildClickListener
         refreshList();
 
         findViewById(R.id.btnAppliedJob).setOnClickListener(this::onAppliedJobClick);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu_search, menu);
+        MenuItem searchItem = menu.findItem(R.id.search_view);
+        searchView = (SearchView) searchItem.getActionView();
+        searchView.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        searchView.setQueryHint("Search...");
+        return super.onCreateOptionsMenu(menu);
     }
 
     public static int getJobseekerId() { return jobseekerId; }
@@ -119,6 +143,8 @@ ExpandableListView.OnChildClickListener
         listAdapter = new MainListAdapter(this, listRecruiter, childMap);
         listView.setAdapter(listAdapter);
         listView.setOnChildClickListener(this);
+
+        searchView.setOnQueryTextListener(listAdapter);
     }
 
     @Override

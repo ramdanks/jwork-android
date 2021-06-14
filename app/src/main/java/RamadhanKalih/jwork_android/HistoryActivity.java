@@ -44,7 +44,7 @@ TabLayout.OnTabSelectedListener
         setContentView(R.layout.activity_history);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        refreshList();
+        refreshList(MainActivity.getJobseekerId());
 
         tab = (TabLayout) findViewById(R.id.tabHistory);
         tab.addOnTabSelectedListener(this);
@@ -58,13 +58,12 @@ TabLayout.OnTabSelectedListener
         InvoiceJob inv = adapterList[fromSel].removeItem(invId);
         if (inv == null)
             return false;
-        inv.status = toSel == SEL_CANCELLED ? "Cancelled" : "Finished";
         adapterList[toSel].addItem(inv);
         return true;
     }
 
-    private void refreshList() {
-        JobFetchRequest req = new JobFetchRequest(MainActivity.getJobseekerId(), this, this);
+    private void refreshList(int jobseekerId) {
+        JobFetchRequest req = new JobFetchRequest(jobseekerId, this, this);
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(req);
     }
