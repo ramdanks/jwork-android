@@ -28,6 +28,7 @@ import com.android.volley.toolbox.Volley;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,7 +37,6 @@ public class MainActivity extends AppCompatActivity
 implements Response.ErrorListener, Response.Listener<String>,
 ExpandableListView.OnChildClickListener, SearchView.OnQueryTextListener
 {
-    private HashSet<Integer> listRecruiterId = new HashSet<>();
     private ArrayList<Recruiter> listRecruiter = new ArrayList<>();
     private ArrayList<Job> listJobId = new ArrayList<>();
     private HashMap<Recruiter, ArrayList<Job>> childMap = new HashMap<>();
@@ -55,8 +55,10 @@ ExpandableListView.OnChildClickListener, SearchView.OnQueryTextListener
         jobseekerId = getIntent().getIntExtra("id", -1);
         // preparing list data
         refreshList();
-
+        // click listener
         findViewById(R.id.btnAppliedJob).setOnClickListener(this::onAppliedJobClick);
+        // prepare History of Invoice Job
+        HistoryActivity.prefetchInvoiceJob(this, jobseekerId);
     }
 
     @Override
@@ -90,6 +92,8 @@ ExpandableListView.OnChildClickListener, SearchView.OnQueryTextListener
         try {
             JSONArray resp = new JSONArray(response);
             if (resp.isNull(0)) throw new RuntimeException();
+            // buat list unik berdasarkan id, agar tidak duplikat recruiter
+            HashSet<Integer> listRecruiterId = new HashSet<>();
             for (int i = 0; i < resp.length(); i++)
             {
                 JSONObject job = resp.getJSONObject(i);

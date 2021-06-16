@@ -25,8 +25,7 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class ApplyJobActivity extends AppCompatActivity
-implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener,
-        TextWatcher
+implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener, TextWatcher
 {
     private RadioGroup group;
     private Job job;
