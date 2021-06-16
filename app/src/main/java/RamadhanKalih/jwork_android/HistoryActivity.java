@@ -26,8 +26,10 @@ implements TabLayout.OnTabSelectedListener, SearchView.OnQueryTextListener
     public static final int SEL_CANCELLED = 2;
 
     private static InvoiceJob selectedItem;
+    private static int jobseekerId = -1;
     private static HistoryListAdapter[] adapterList = new HistoryListAdapter[3];
     private static HistoryRunnable historyRunnable;
+
     private TabLayout tab;
     private ListView listView;
     private ProgressBar progressBar;
@@ -83,12 +85,20 @@ implements TabLayout.OnTabSelectedListener, SearchView.OnQueryTextListener
     }
 
     public static boolean prefetchInvoiceJob(Context context, int jobseekerId) {
-        if (historyRunnable == null) {
+        if (historyRunnable == null || HistoryActivity.jobseekerId != jobseekerId) {
+            HistoryActivity.jobseekerId = jobseekerId;
             historyRunnable = new HistoryRunnable(context, jobseekerId);
             new Thread(historyRunnable).start();
             return true;
         }
         return false;
+    }
+
+    public static boolean addInvoiceJob(InvoiceJob inv, int sel) {
+        if (sel < 0 || sel > 2)
+            return false;
+        adapterList[sel].addItem(inv);
+        return true;
     }
 
     @Override
@@ -106,7 +116,7 @@ implements TabLayout.OnTabSelectedListener, SearchView.OnQueryTextListener
     public static InvoiceJob getSelectedItem() { return selectedItem; }
 
     public static boolean swapCategory(int invId, int fromSel, int toSel) {
-        if (fromSel < SEL_ONGOING && toSel > SEL_CANCELLED)
+        if (fromSel == toSel || fromSel < 0 || fromSel > 2 || toSel < 0 || toSel > 2)
             return false;
         InvoiceJob inv = adapterList[fromSel].removeItem(invId);
         if (inv == null)

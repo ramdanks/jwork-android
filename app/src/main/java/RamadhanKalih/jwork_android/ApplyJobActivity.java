@@ -127,6 +127,10 @@ implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener, TextWatch
         String promptMessage = null;
         promptMessage = response.isEmpty() ? "Request failed" : "Applied successfully";
         Toast.makeText(this, promptMessage, Toast.LENGTH_LONG).show();
+        if (!response.isEmpty()) {
+            InvoiceJob inv = InvoiceJob.parseJSONResponse(response);
+            HistoryActivity.addInvoiceJob(inv, HistoryActivity.SEL_ONGOING);
+        }
     }
 
     public void onCountResponse(String response) {
