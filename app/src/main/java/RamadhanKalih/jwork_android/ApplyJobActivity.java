@@ -63,9 +63,12 @@ implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener, TextWatch
     public void onCheckedChanged(RadioGroup group, int checkedId) {
         TextView tvRefCode = findViewById(R.id.tvRefCode);
         EditText etRefCode = findViewById(R.id.etRefCode);
+        TextView jtot      = findViewById(R.id.tvTotalFee);
         int visibility = getRadioSelection() == EWALLET_ID ? View.VISIBLE : View.INVISIBLE;
         tvRefCode.setVisibility(visibility);
         etRefCode.setVisibility(visibility);
+        findViewById(R.id.btnApply).setEnabled(false);
+        jtot.setText("0");
     }
 
     public void onCountClick(View view) {

@@ -78,13 +78,21 @@ Response.ErrorListener, Response.Listener<String>
                     inv.jobName = jobJSON.getString("name");
                     inv.jobFee = jobJSON.getInt("fee");
                     inv.jobCategory = jobJSON.getString("category");
+                    inv.type = invoiceJSON.getString("paymentType");
+
+                    if (!invoiceJSON.isNull("bonus")) {
+                        JSONObject bonusJSON = invoiceJSON.getJSONObject("bonus");
+                        inv.referralCode = bonusJSON.getString("referralCode");
+                        inv.extraFee = bonusJSON.getInt("extraFee");
+                    }
 
                     if (inv.status.equals("OnGoing"))        listItemOnGoing.add(inv);
                     else if (inv.status.equals("Finished"))  listItemFinished.add(inv);
                     else                                     listItemCancelled.add(inv);
                 }
+                Thread.sleep(500);
             }
-        } catch(JSONException e) {
+        } catch(Exception e) {
             responseException = e;
         }
     }

@@ -1,17 +1,17 @@
 package RamadhanKalih.jwork_android;
 
-import android.app.ActionBar;
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.EditText;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,13 +80,15 @@ implements Filterable
         TextView date = (TextView) view.findViewById(R.id.tvHistoryDate);
         TextView detail = (TextView) view.findViewById(R.id.tvHistoryDetail);
         TextView title = (TextView) view.findViewById(R.id.tvHistoryTitle);
-        TextView payment = (TextView) view.findViewById(R.id.tvHistoryPayment);
+        TextView payment = (TextView) view.findViewById(R.id.colorHistoryType);
         ImageView pict = (ImageView) view.findViewById(R.id.ivHistoryPicture);
 
         title.setText(inv.jobName);
-        payment.setText(inv.type);
         date.setText(inv.date);
-        detail.setText("Recruiter: " + inv.recruiter + ", Total Fee: " + inv.jobFee + inv.extraFee);
+        detail.setText("Recruiter: " + inv.recruiter + ", Total Fee: " + (inv.jobFee + inv.extraFee));
+
+        if (inv.type.equals("BankPayment"))
+            payment.setBackgroundColor(Color.RED);
 
         switch (inv.jobCategory)
         {
