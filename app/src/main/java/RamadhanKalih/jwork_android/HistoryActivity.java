@@ -1,36 +1,22 @@
 package RamadhanKalih.jwork_android;
 
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
-import android.widget.ExpandableListView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
-import android.widget.Toast;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.material.tabs.TabLayout;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.ArrayList;
 
 public class HistoryActivity extends AppCompatActivity
 implements TabLayout.OnTabSelectedListener, SearchView.OnQueryTextListener
@@ -43,6 +29,42 @@ implements TabLayout.OnTabSelectedListener, SearchView.OnQueryTextListener
     private static HistoryListAdapter[] adapterList = new HistoryListAdapter[3];
     private static HistoryRunnable historyRunnable;
     private TabLayout tab;
+    private ListView listView;
+    private ProgressBar progressBar;
+
+    // class async untuk memperbarui list adapter
+    private class UpdateAdapter extends AsyncTask<Void, Integer, Boolean>
+    {
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            // update progress
+            while (historyRunnable.isOk() && !historyRunnable.isDone())
+            {
+                int lengthData;
+                do { lengthData = historyRunnable.getLengthData(); } while (lengthData == HistoryRunnable.ON_PROGRESS);
+                progressBar.setMax(lengthData);
+                progressBar.setProgress(historyRunnable.getProgressData());
+            }
+            // update adapter
+            if (historyRunnable.isOk()) {
+                adapterList[SEL_ONGOING] = new HistoryListAdapter(HistoryActivity.this, historyRunnable.getListItemOnGoing());
+                adapterList[SEL_FINISHED] = new HistoryListAdapter(HistoryActivity.this, historyRunnable.getListItemFinished());
+                adapterList[SEL_CANCELLED] = new HistoryListAdapter(HistoryActivity.this, historyRunnable.getListItemCancelled());
+            }
+            return historyRunnable.isOk();
+        }
+
+        protected void onProgressUpdate(Integer... progress) {
+            progressBar.setProgress(progress[0]);
+        }
+
+        protected void onPostExecute(Boolean result) {
+            progressBar.setVisibility(View.GONE);
+            if (!result) return;
+            int pos = tab.getSelectedTabPosition();
+            listView.setAdapter(adapterList[pos]);
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,23 +74,12 @@ implements TabLayout.OnTabSelectedListener, SearchView.OnQueryTextListener
         tab = (TabLayout) findViewById(R.id.tabHistory);
         tab.addOnTabSelectedListener(this);
 
-        ListView listView = findViewById(R.id.lvHistory);
+        listView = findViewById(R.id.lvHistory);
         listView.setOnItemClickListener(HistoryActivity.this::onClick);
 
-        // update adapter view on another thread
-        new Thread(() -> {
-            // get invoice job if not already initiated
-            if (historyRunnable == null)
-                prefetchInvoiceJob(this, MainActivity.getJobseekerId());
-            // wait for respond, and then update adapter
-            while (!historyRunnable.isResponding());
-            if (historyRunnable.isOk()) {
-                adapterList[SEL_ONGOING] = new HistoryListAdapter(HistoryActivity.this, historyRunnable.getListItemOnGoing());
-                adapterList[SEL_FINISHED] = new HistoryListAdapter(HistoryActivity.this, historyRunnable.getListItemFinished());
-                adapterList[SEL_CANCELLED] = new HistoryListAdapter(HistoryActivity.this, historyRunnable.getListItemCancelled());
-                HistoryActivity.this.onTabSelected(null);
-            }
-        }).start();
+        progressBar = findViewById(R.id.pbHistory);
+
+        new UpdateAdapter().execute();
     }
 
     public static boolean prefetchInvoiceJob(Context context, int jobseekerId) {
