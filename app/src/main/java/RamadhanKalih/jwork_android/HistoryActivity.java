@@ -5,11 +5,15 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -28,7 +32,7 @@ import java.util.ArrayList;
 
 public class HistoryActivity extends AppCompatActivity
 implements Response.ErrorListener, Response.Listener<String>,
-TabLayout.OnTabSelectedListener
+TabLayout.OnTabSelectedListener, SearchView.OnQueryTextListener
 {
     public static final int SEL_ONGOING = 0;
     public static final int SEL_FINISHED = 1;
@@ -48,6 +52,18 @@ TabLayout.OnTabSelectedListener
 
         tab = (TabLayout) findViewById(R.id.tabHistory);
         tab.addOnTabSelectedListener(this);
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.menu_search, menu);
+        MenuItem searchItem = menu.findItem(R.id.search_view);
+        SearchView searchView = (SearchView) searchItem.getActionView();
+        searchView.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        searchView.setQueryHint("Search...");
+        searchView.setOnQueryTextListener(this);
+        return super.onCreateOptionsMenu(menu);
     }
 
     public static InvoiceJob getSelectedItem() { return selectedItem; }
@@ -149,5 +165,20 @@ TabLayout.OnTabSelectedListener
     @Override
     public void onErrorResponse(VolleyError error) {
         Toast.makeText(this, "Connection Error", Toast.LENGTH_LONG).show();
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        int pos = this.tab.getSelectedTabPosition();
+        if (adapterList[pos] != null) {
+            adapterList[pos].getFilter().filter(newText);
+            return true;
+        }
+        return false;
     }
 }

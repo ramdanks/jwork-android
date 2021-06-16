@@ -6,36 +6,56 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
 public class HistoryListAdapter extends BaseAdapter
+implements Filterable
 {
+    public static final int NOT_FOUND = -1;
+
     private Context context;
+    private ArrayList<InvoiceJob> listAllItem;
     private ArrayList<InvoiceJob> listItem;
+    private Filter filter;
 
     public HistoryListAdapter(Context context, ArrayList<InvoiceJob> listItem) {
         this.context = context;
-        this.listItem = listItem;
+        this.listItem = listItem; // shallow copy
+        this.listAllItem = new ArrayList<>(listItem); // deep copy
+    }
+
+    private int getItemIndex(int invId, ArrayList<InvoiceJob> list) {
+        for (int i = 0; i < list.size(); i++)
+        {
+            if (list.get(i).id == invId)
+                return i;
+        }
+        return NOT_FOUND;
     }
 
     public InvoiceJob removeItem(int invId) {
-        for (int i = 0; i < listItem.size(); i++)
-        {
-            InvoiceJob inv = listItem.get(i);
-            if (inv.id == invId)
-            {
-                listItem.remove(i);
-                super.notifyDataSetChanged();
-                return inv;
-            }
+        // lakukan linear search untuk mencari index pada array
+        final int iAll = getItemIndex(invId, listAllItem);
+        // apabila tidak di Seluruh Item, sudah pasti tidak ada di View, langsung return null
+        if (iAll == NOT_FOUND) return null;
+        // apabila besar list sama, maka dijamin konten isinya sama persis (tidak ada filter)
+        final int iView = listItem.size() == listAllItem.size() ? iAll : getItemIndex(invId, listItem);
+        if (iView != NOT_FOUND) {
+            listItem.remove(iView);
+            super.notifyDataSetChanged();
         }
-        return null;
+        return listAllItem.remove(iAll);
     }
 
     public void addItem(InvoiceJob inv) {
+        listAllItem.add(inv);
         listItem.add(inv);
         super.notifyDataSetChanged();
     }
@@ -97,5 +117,38 @@ public class HistoryListAdapter extends BaseAdapter
         }
 
         return view;
+    }
+
+    @Override
+    public Filter getFilter() {
+        if (filter == null) {
+            filter = new Filter() {
+                @Override
+                protected FilterResults performFiltering(CharSequence constraint) {
+                    // initiate object with initial size
+                    List<InvoiceJob> filtered = new ArrayList<>(listAllItem.size());
+                    // logic
+                    if (constraint == null || constraint.length() == 0)
+                        filtered.addAll(listAllItem);
+                    else {
+                        for (InvoiceJob inv : listAllItem) {
+                            if (inv.jobName.contains(constraint))
+                                filtered.add(inv);
+                        }
+                    }
+                    FilterResults res = new FilterResults();
+                    res.values = filtered;
+                    return res;
+                }
+
+                @Override
+                protected void publishResults(CharSequence constraint, FilterResults results) {
+                    listItem.clear();
+                    listItem.addAll((List) results.values);
+                    notifyDataSetChanged();
+                }
+            };
+        }
+        return filter;
     }
 }

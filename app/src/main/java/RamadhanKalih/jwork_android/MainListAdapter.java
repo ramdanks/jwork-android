@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 public class MainListAdapter extends BaseExpandableListAdapter
-implements SearchView.OnQueryTextListener, Filterable
+implements Filterable
 {
     private static final boolean SEARCH_JOBNAME_ALTERNATIVE = true;
 
@@ -107,15 +107,6 @@ implements SearchView.OnQueryTextListener, Filterable
 
     @Override
     public boolean isChildSelectable(int groupPosition, int childPosition) { return true; }
-
-    @Override
-    public boolean onQueryTextSubmit(String query) { return false; }
-
-    @Override
-    public boolean onQueryTextChange(String newText) {
-        getFilter().filter(newText);
-        return false;
-    }
 
     @Override
     public Filter getFilter() {

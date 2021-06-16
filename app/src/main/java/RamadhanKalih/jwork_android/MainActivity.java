@@ -34,7 +34,7 @@ import java.util.HashSet;
 
 public class MainActivity extends AppCompatActivity
 implements Response.ErrorListener, Response.Listener<String>,
-ExpandableListView.OnChildClickListener
+ExpandableListView.OnChildClickListener, SearchView.OnQueryTextListener
 {
     private HashSet<Integer> listRecruiterId = new HashSet<>();
     private ArrayList<Recruiter> listRecruiter = new ArrayList<>();
@@ -43,8 +43,6 @@ ExpandableListView.OnChildClickListener
 
     private static Job selectedJob;
     private static int jobseekerId;
-
-    private SearchView searchView;
 
     private ExpandableListView listView;
     private MainListAdapter listAdapter;
@@ -66,9 +64,10 @@ ExpandableListView.OnChildClickListener
         MenuInflater menuInflater = getMenuInflater();
         menuInflater.inflate(R.menu.menu_search, menu);
         MenuItem searchItem = menu.findItem(R.id.search_view);
-        searchView = (SearchView) searchItem.getActionView();
+        SearchView searchView = (SearchView) searchItem.getActionView();
         searchView.setImeOptions(EditorInfo.IME_ACTION_DONE);
         searchView.setQueryHint("Search...");
+        searchView.setOnQueryTextListener(this);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -143,8 +142,6 @@ ExpandableListView.OnChildClickListener
         listAdapter = new MainListAdapter(this, listRecruiter, childMap);
         listView.setAdapter(listAdapter);
         listView.setOnChildClickListener(this);
-
-        searchView.setOnQueryTextListener(listAdapter);
     }
 
     @Override
@@ -158,5 +155,19 @@ ExpandableListView.OnChildClickListener
         Intent i = new Intent(this, ApplyJobActivity.class);
         startActivity(i);
         return true;
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+         return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String newText) {
+        if (listAdapter != null) {
+            listAdapter.getFilter().filter(newText);
+            return true;
+        }
+        return false;
     }
 }
