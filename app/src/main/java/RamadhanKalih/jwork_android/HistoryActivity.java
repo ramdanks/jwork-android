@@ -18,6 +18,11 @@ import android.widget.SearchView;
 
 import com.google.android.material.tabs.TabLayout;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+
 /** Activity menampilkan Riwayat Invoice milik Jobseeker tertentu
  * @author Ramadhan Kalih Sewu (1806148826)
  * @version 210617
@@ -40,6 +45,9 @@ implements TabLayout.OnTabSelectedListener, SearchView.OnQueryTextListener
     private static HistoryListAdapter[] adapterList = new HistoryListAdapter[3];
     /** runnable untuk meminta dan mengurai data History di thread lain */
     private static HistoryRunnable historyRunnable;
+    /** list untuk menyimpat konten yang pending akibat melakukan addInvoiceJob() tetapi
+     * HistoryListAdapter belum selesai di proses oleh historyRunnable */
+    private static HashMap<Integer, ArrayList<InvoiceJob>> pendingInvoiceJob = new HashMap<>();
 
     /** TabLayout untuk menampilkan kategori InvoiceJob */
     private TabLayout tab;
@@ -59,20 +67,22 @@ implements TabLayout.OnTabSelectedListener, SearchView.OnQueryTextListener
                 int lengthData;
                 do { lengthData = historyRunnable.getLengthData(); } while (lengthData == HistoryRunnable.ON_PROGRESS);
                 progressBar.setMax(lengthData);
-                publishProgress(historyRunnable.getProgressData());
+                progressBar.setProgress(historyRunnable.getProgressData());
             }
             // update adapter
             if (historyRunnable.isOk()) {
                 adapterList[SEL_ONGOING] = new HistoryListAdapter(HistoryActivity.this, historyRunnable.getListItemOnGoing());
                 adapterList[SEL_FINISHED] = new HistoryListAdapter(HistoryActivity.this, historyRunnable.getListItemFinished());
                 adapterList[SEL_CANCELLED] = new HistoryListAdapter(HistoryActivity.this, historyRunnable.getListItemCancelled());
+                // add item in the pending list
+                adapterList[SEL_ONGOING].addItem(pendingInvoiceJob.get(SEL_ONGOING));
+                adapterList[SEL_FINISHED].addItem(pendingInvoiceJob.get(SEL_FINISHED));
+                adapterList[SEL_CANCELLED].addItem(pendingInvoiceJob.get(SEL_CANCELLED));
             }
             return historyRunnable.isOk();
         }
 
-        protected void onProgressUpdate(Integer... progress) {
-            progressBar.setProgress(progress[0]);
-        }
+        protected void onProgressUpdate(Integer... progress) {}
 
         protected void onPostExecute(Boolean result) {
             progressBar.setVisibility(View.GONE);
@@ -119,6 +129,14 @@ implements TabLayout.OnTabSelectedListener, SearchView.OnQueryTextListener
     public static boolean addInvoiceJob(InvoiceJob inv, int sel) {
         if (sel < 0 || sel > 2)
             return false;
+        if (adapterList[sel] == null) {
+            ArrayList<InvoiceJob> list = pendingInvoiceJob.get(sel);
+            if (list == null)
+                list = new ArrayList<InvoiceJob>();
+            list.add(inv);
+            pendingInvoiceJob.put(sel, list);
+            return true;
+        }
         adapterList[sel].addItem(inv);
         return true;
     }
@@ -143,7 +161,7 @@ implements TabLayout.OnTabSelectedListener, SearchView.OnQueryTextListener
      * @param invId id dari InvoiceJob yang ingin dipindah
      * @param fromSel asal tempat InvoiceJob berada
      * @param toSel destinari tempat InvoiceJob dipindahkan
-     * @return false jika sel tidak dikenali atau InvoiceJob tidak ditemukan, true sebaliknya */
+     * @return false jika sel sama, tidak dikenali, atau InvoiceJob tidak ditemukan, true sebaliknya */
     public static boolean swapCategory(int invId, int fromSel, int toSel) {
         if (fromSel == toSel || fromSel < 0 || fromSel > 2 || toSel < 0 || toSel > 2)
             return false;

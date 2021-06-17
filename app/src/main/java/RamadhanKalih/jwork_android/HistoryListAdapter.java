@@ -70,8 +70,17 @@ implements Filterable
 
     /** menambah item dalam adapter, akan memperbarui tampilan */
     public void addItem(InvoiceJob inv) {
+        if (inv == null) return;
         listAllItem.add(inv);
         listItem.add(inv);
+        super.notifyDataSetChanged();
+    }
+
+    /** menambah item dalam adapter, akan memperbarui tampilan */
+    public void addItem(List<InvoiceJob> invList) {
+        if (invList == null) return;
+        listAllItem.addAll(invList);
+        listItem.addAll(invList);
         super.notifyDataSetChanged();
     }
 

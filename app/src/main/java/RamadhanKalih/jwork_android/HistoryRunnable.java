@@ -116,7 +116,7 @@ Response.ErrorListener, Response.Listener<String>
                     else if (inv.status.equals("Finished"))  listItemFinished.add(inv);
                     else                                     listItemCancelled.add(inv);
                 }
-                Thread.sleep(500);
+                Thread.sleep(0);
             }
         } catch(Exception e) {
             responseException = e;
