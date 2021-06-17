@@ -22,16 +22,25 @@ import org.json.JSONObject;
 
 import java.util.List;
 
+/** Activity untuk menampilkan dan memproses pendaftaran jobseeker
+ * @author Ramadhan Kalih Sewu (1806148826)
+ * @version 210617
+ */
 public class RegisterActivity extends AppCompatActivity
 implements Response.Listener<String>, Response.ErrorListener
 {
-
+    /** EditText nama jobseeker */
     private EditText etName;
+    /** EditText email jobseeker */
     private EditText etEmail;
+    /** EditText password jobseeker */
     private EditText etPass;
+    /** Button Register */
     private Button btnRegister;
+    /** Button Login */
     private TextView tvLoginInstead;
 
+    /** dipanggil saat activity dibangun, inisiasi variable dan set listener */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +56,7 @@ implements Response.Listener<String>, Response.ErrorListener
         tvLoginInstead.setOnClickListener(this::onLoginInsteadClick);
     }
 
+    /** menjawab response untuk request pendaftaran jobseeker */
     @Override
     public void onResponse(String response) {
         try {
@@ -59,11 +69,13 @@ implements Response.Listener<String>, Response.ErrorListener
         Toast.makeText(this, "Register Successful", Toast.LENGTH_LONG).show();
     }
 
+    /** menampilkan feedback jika terdapat kegagalan koneksi */
     @Override
     public void onErrorResponse(VolleyError error) {
         Toast.makeText(this, "Register Failed", Toast.LENGTH_LONG).show();
     }
 
+    /** memproses data jobseeker saat button Register di click dan lakukan request */
     private void onRegisterClick(View view) {
         String email = etEmail.getText().toString();
         String pass = etPass.getText().toString();
@@ -74,6 +86,7 @@ implements Response.Listener<String>, Response.ErrorListener
         queue.add(req);
     }
 
+    /** Jalankan activity Login jika button Login di click */
     private void onLoginInsteadClick(View view) {
         Intent i = new Intent(this, LoginActivity.class);
         startActivity(i);

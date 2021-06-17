@@ -19,15 +19,23 @@ import com.android.volley.toolbox.Volley;
 
 import org.json.JSONObject;
 
+/** Activity untuk memproses jobseeker login
+ * @author Ramadhan Kalih Sewu (1806148826)
+ * @version 210617
+ */
 public class LoginActivity extends AppCompatActivity
 implements Response.Listener<String>, Response.ErrorListener
 {
-
+    /** EditText email */
     private EditText etEmail;
+    /** EditText password */
     private EditText etPass;
+    /** button Login */
     private Button btnLogin;
+    /** button Register */
     private TextView tvRegister;
 
+    /** dipanggil saat activity dibangun, inisiasi variabel dan set listener */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,6 +53,7 @@ implements Response.Listener<String>, Response.ErrorListener
         tvRegister.setOnClickListener(this::onRegisterClick);
     }
 
+    /** meminta Request untuk Login saat login button di click */
     private void onLoginClick(View view) {
         String email = etEmail.getText().toString();
         String pass = etPass.getText().toString();
@@ -54,11 +63,13 @@ implements Response.Listener<String>, Response.ErrorListener
         queue.add(req);
     }
 
+    /** membangun activity Register saat register button di click */
     private void onRegisterClick(View view) {
         Intent i = new Intent(this, RegisterActivity.class);
         startActivity(i);
     }
 
+    /** respon terhadap Request login, apabila berhasil, jalankan activity Main */
     @Override
     public void onResponse(String response) {
         Intent i = new Intent(this, MainActivity.class);
@@ -73,6 +84,7 @@ implements Response.Listener<String>, Response.ErrorListener
         startActivity(i);
     }
 
+    /** tampilkan pesan feedback jika terjadi kegagalan koneksi */
     @Override
     public void onErrorResponse(VolleyError error) {
         Toast.makeText(this, "Login Failed", Toast.LENGTH_LONG).show();

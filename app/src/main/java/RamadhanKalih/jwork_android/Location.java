@@ -1,5 +1,9 @@
 package RamadhanKalih.jwork_android;
 
+/** menyimpan kumpulan variabel dari objek Location
+ * @author Ramadhan Kalih Sewu (1806148826)
+ * @version 210617
+ */
 public class Location
 {
     private String province;

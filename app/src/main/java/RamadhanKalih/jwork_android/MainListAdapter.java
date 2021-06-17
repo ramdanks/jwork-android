@@ -19,6 +19,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/** Adapter untuk memproses tampilan ListView Recruiter dengan Jobnya
+ * @author Ramadhan Kalih Sewu (1806148826)
+ * @version 210617
+ */
 public class MainListAdapter extends BaseExpandableListAdapter
 implements Filterable
 {

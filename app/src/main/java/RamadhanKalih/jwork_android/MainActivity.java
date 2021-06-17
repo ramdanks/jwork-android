@@ -33,6 +33,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
+/** Activity untuk menampilkan list job yang tersedia
+ * @author Ramadhan Kalih Sewu (1806148826)
+ * @version 210617
+ */
 public class MainActivity extends AppCompatActivity
 implements Response.ErrorListener, Response.Listener<String>,
 ExpandableListView.OnChildClickListener, SearchView.OnQueryTextListener
@@ -47,6 +51,7 @@ ExpandableListView.OnChildClickListener, SearchView.OnQueryTextListener
     private ExpandableListView listView;
     private MainListAdapter listAdapter;
 
+    /** dipanggil saat activity dibangun, persiapkan data */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,6 +66,7 @@ ExpandableListView.OnChildClickListener, SearchView.OnQueryTextListener
         HistoryActivity.prefetchInvoiceJob(this, jobseekerId);
     }
 
+    /** buat sebuah search bar untuk pencarian konten list view */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater = getMenuInflater();
@@ -73,20 +79,25 @@ ExpandableListView.OnChildClickListener, SearchView.OnQueryTextListener
         return super.onCreateOptionsMenu(menu);
     }
 
+    /** akses jobseeker id yang login */
     public static int getJobseekerId() { return jobseekerId; }
+    /** akses job yang dipilih dari listview */
     public static Job getSelectedJob() { return selectedJob; }
 
+    /** saat button applied job di click, jalankan activity History */
     private void onAppliedJobClick(View view) {
         Intent i = new Intent(this, HistoryActivity.class);
         startActivity(i);
     }
 
+    /** lakukan request untuk meminta list job melalui MenuRequest */
     private void refreshList() {
         MenuRequest req = new MenuRequest(this, this);
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(req);
     }
 
+    /** respon terhadap VolleyRequest, uraikan data sehingga dapat ditampilkan di ListView */
     @Override
     public void onResponse(String response) {
         try {
@@ -148,11 +159,13 @@ ExpandableListView.OnChildClickListener, SearchView.OnQueryTextListener
         listView.setOnChildClickListener(this);
     }
 
+    /** berikan feedback saat terjadi gangguan koneksi */
     @Override
     public void onErrorResponse(VolleyError error) {
         Toast.makeText(this, "Connection Error", Toast.LENGTH_LONG).show();
     }
 
+    /** saat job (child dari ListView) dipilih, pindah ke activity ApplyJob */
     @Override
     public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
         selectedJob = childMap.get(listRecruiter.get(groupPosition)).get(childPosition);
@@ -161,11 +174,14 @@ ExpandableListView.OnChildClickListener, SearchView.OnQueryTextListener
         return true;
     }
 
+    /** tidak digunakan */
     @Override
     public boolean onQueryTextSubmit(String query) {
          return false;
     }
 
+    /** proses pencarian: perubahan pada kueri teks search akan mengakibatkan filter
+     * kemudian memperbarui tampilan ListView agar sesuai dengan kata pencarian */
     @Override
     public boolean onQueryTextChange(String newText) {
         if (listAdapter != null) {

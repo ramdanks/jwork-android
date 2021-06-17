@@ -14,40 +14,66 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
+/** Runnable untuk meminta dan mengurai list InvoiceJob dari jobseeker
+ * membolehkan kita membangun thread untuk menjalankan secara asinkron
+ * @author Ramadhan Kalih Sewu (1806148826)
+ * @version 210617
+ */
 public class HistoryRunnable implements Runnable,
 Response.ErrorListener, Response.Listener<String>
 {
+    /** konstan penanda sedang dalam proses */
     public static final int ON_PROGRESS = -1;
 
+    /** context yang menghandle VoleyRequest */
     private Context context;
+    /** jobseeker yang di proses History nya */
     private int jobseekerId;
+    /** response yang disimpan dari hasil VolleyRequest */
     private String response;
+    /** panjang data keseluruhan */
     private int lengthData = ON_PROGRESS;
+    /** panjang data yang telah diproses */
     private int progressData = ON_PROGRESS;
 
+    /** exception dari pengolahan response */
     private Exception responseException = null;
+    /** error dari koneksi ke server */
     private VolleyError responseError = null;
 
+    /** list item InvoiceJob yang berstatus OnGoing */
     private ArrayList<InvoiceJob> listItemOnGoing = new ArrayList<>();
+    /** list item InvoiceJob yang berstatus Finished */
     private ArrayList<InvoiceJob> listItemFinished = new ArrayList<>();
+    /** list item InvoiceJob yang berstatus Cancelled */
     private ArrayList<InvoiceJob> listItemCancelled = new ArrayList<>();
 
+    /** ctor inisiasi variabel */
     public HistoryRunnable(Context context, int jobseekerId) {
         this.context = context;
         this.jobseekerId = jobseekerId;
     }
 
+    /** akses panjang data yang telah diproses */
     public int getLengthData() { return lengthData; }
+    /** akses panjang data keseluruhan */
     public int getProgressData() { return progressData; }
+    /** state runnable baik apabila tidak ada exception dan error */
     public boolean isOk() { return responseException == null && responseError == null; }
+    /** state runnable selesai jika seluruh data telah diproses */
     public boolean isDone() { return progressData == lengthData; }
+    /** akses Exception */
     public Exception getException() { return responseException; }
+    /** akses VolleyError */
     public VolleyError getError() { return responseError; }
-
+    /** akses list InvoiceJob berstatus OnGoing */
     public ArrayList<InvoiceJob> getListItemOnGoing() { return listItemOnGoing; }
+    /** akses list InvoiceJob berstatus Finished */
     public ArrayList<InvoiceJob> getListItemFinished() { return listItemFinished; }
+    /** akses list InvoiceJob berstatus Cancelled */
     public ArrayList<InvoiceJob> getListItemCancelled() { return listItemCancelled; }
 
+    /** lakukan request dan penguraian data */
     @Override
     public void run() {
         // buat queue request
@@ -97,12 +123,15 @@ Response.ErrorListener, Response.Listener<String>
         }
     }
 
+    /** respon terhadap VolleyError maka otomatis status runnable selesai */
     @Override
     public void onErrorResponse(VolleyError error) {
         responseError = error;
         progressData = 0; lengthData = 0;
     }
 
+    /** memindahkan response supaya penguraian data dilakukan pada run(),
+     * ini agar tidak blocking thread dari context */
     @Override
     public void onResponse(String response) {
         this.response = response;

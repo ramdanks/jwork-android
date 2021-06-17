@@ -1,7 +1,10 @@
 package RamadhanKalih.jwork_android;
 
-import java.time.LocalTime;
 
+/** menyimpan kumpulan variabel dari objek Recruiter
+ * @author Ramadhan Kalih Sewu (1806148826)
+ * @version 210617
+ */
 public class Recruiter
 {
     private int id;

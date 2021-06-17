@@ -24,14 +24,23 @@ import org.json.JSONObject;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 
+/** Activity menampilkan Submission Invoice(Job)
+ * @author Ramadhan Kalih Sewu (1806148826)
+ * @version 210617
+ */
 public class ApplyJobActivity extends AppCompatActivity
 implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener, TextWatcher
 {
+    /** radio group untuk opsi jenis pembayaran */
     private RadioGroup group;
+    /** job yang ditampilkan */
     private Job job;
+    /** posisi index opsi bank payment dari radio group */
     private static final int BANK_ID = 1;
+    /** posisi index opsi ewallet payment dari radio group */
     private static final int EWALLET_ID = 0;
 
+    /** metode yang dipanggil saat activity dibangun */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +68,7 @@ implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener, TextWatch
         findViewById(R.id.btnApply).setOnClickListener(this::onApplyClick);
     }
 
+    /** dipanggil saat pemilihan opsi radio group untuk jenis pembayaran */
     @Override
     public void onCheckedChanged(RadioGroup group, int checkedId) {
         TextView tvRefCode = findViewById(R.id.tvRefCode);
@@ -71,6 +81,7 @@ implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener, TextWatch
         jtot.setText("0");
     }
 
+    /** dipanggil saat button Count di click */
     public void onCountClick(View view) {
         TextView jtot  = findViewById(R.id.tvTotalFee);
         if (getRadioSelection() == EWALLET_ID)
@@ -90,6 +101,8 @@ implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener, TextWatch
         jtot.setText(String.valueOf(job.getFee()));
     }
 
+    /** dipanggil saat button Apply di click, melakukan request
+     * untuk membangun Invoice melalui ApplyJobRequest */
     public void onApplyClick(View view)
     {
         ApplyJobRequest req = null;
@@ -112,17 +125,22 @@ implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener, TextWatch
         queue.add(req);
     }
 
+    /** meminta posisi (index) dari radio group opsi jenis pembayaran
+     * @return index dari radio group, jika tidak ditemukan return -1 */
     private int getRadioSelection() {
         int checkedId = group.getCheckedRadioButtonId();
         View radioButton = group.findViewById(checkedId);
         return group.indexOfChild(radioButton);
     }
 
+    /** metode sebagai error listener dari StringRequest */
     @Override
     public void onErrorResponse(VolleyError error) {
         Toast.makeText(this, "Connection Error", Toast.LENGTH_LONG).show();
     }
 
+    /** respon terhadap request yang dibentuk oleh button Apply,
+     * menambah InvoiceJob kepada HistoryActivity jika invoice berhasil  */
     public void onApplyResponse(String response) {
         String promptMessage = null;
         promptMessage = response.isEmpty() ? "Request failed" : "Applied successfully";
@@ -133,6 +151,7 @@ implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener, TextWatch
         }
     }
 
+    /** respon terhadap request yang dibentuk oleh button Count */
     public void onCountResponse(String response) {
         int totalFee = job.getFee();
         String promptMessage = null;
@@ -162,9 +181,12 @@ implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener, TextWatch
         }
     }
 
+    /** not used */
     @Override
     public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
+    /** respon terhadap perubahan pada EditText kode referral, jika kode referral berubah
+     * maka tombol apply di-non aktifkan karena harus di hitung ulang melalui Count */
     @Override
     public void onTextChanged(CharSequence s, int start, int before, int count) {
         View view = findViewById(R.id.btnApply);
@@ -172,6 +194,7 @@ implements RadioGroup.OnCheckedChangeListener, Response.ErrorListener, TextWatch
             view.setEnabled(false);
     }
 
+    /** not used */
     @Override
     public void afterTextChanged(Editable s) {}
 }

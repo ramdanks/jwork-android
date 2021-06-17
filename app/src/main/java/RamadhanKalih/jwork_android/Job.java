@@ -1,5 +1,9 @@
 package RamadhanKalih.jwork_android;
 
+/** menyimpan kumpulan variabel dari objek Job
+ * @author Ramadhan Kalih Sewu (1806148826)
+ * @version 210617
+ */
 public class Job
 {
     private int id;

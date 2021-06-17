@@ -9,14 +9,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/** Request untuk membuat sebuah Invoice dari sebuah Job
+ * @author Ramadhan Kalih Sewu (1806148826)
+ * @version 210617
+ */
 public class ApplyJobRequest extends StringRequest
 {
+    /** base URL untuk invoice */
     private static final String URL = "http://10.0.2.2/invoice/";
+    /** sub-URL untuk membangun invoice jenis pembayaran Ewallet */
     private static final String EWALLET_SUBDIR = "createEWalletPayment";
+    /** sub-URL untuk membangun invoice jenis pembayaran Bank */
     private static final String BANK_SUBDIR = "createBankPayment";
 
+    /** menyimpan key dan value dari RequestParam REST */
     private Map<String, String> params = new HashMap<>();
 
+    /** ctor untuk pembayaran Bank tanpa adminFee */
     public ApplyJobRequest(ArrayList<Integer> jobIdList,
                            int jobseekerId,
                            Response.Listener<String> listener,
@@ -26,6 +35,7 @@ public class ApplyJobRequest extends StringRequest
         params.put("jobseekerId", String.valueOf(jobseekerId));
     }
 
+    /** ctor untuk pembayaran Bank dengan adminFee */
     public ApplyJobRequest(ArrayList<Integer> jobIdList,
                            int jobseekerId,
                            int adminFee,
@@ -37,6 +47,8 @@ public class ApplyJobRequest extends StringRequest
         params.put("adminFee", String.valueOf(adminFee));
     }
 
+    /** ctor untuk pembayaran Ewallet
+     * @param referralCode kode referral untuk menggunakan bonus, boleh null / kosong */
     public ApplyJobRequest(ArrayList<Integer> jobIdList,
                            int jobseekerId,
                            String referralCode,
@@ -49,10 +61,13 @@ public class ApplyJobRequest extends StringRequest
             params.put("referralCode", referralCode);
     }
 
+    /** memberikan RequestParam untuk Request melalui REST */
+    @Override
     protected Map<String, String> getParams() throws AuthFailureError {
         return params;
     }
 
+    /** mengubah bentuk list menjadi string */
     private String formatJobIdList(ArrayList<Integer> jobIdList) {
         if (jobIdList.isEmpty())
             return null;

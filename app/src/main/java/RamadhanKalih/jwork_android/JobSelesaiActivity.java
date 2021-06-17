@@ -21,17 +21,28 @@ import org.w3c.dom.Text;
 
 import javax.xml.transform.ErrorListener;
 
+/** Activity untuk menampilkan status invoice dan memproses perubahannya
+ * @author Ramadhan Kalih Sewu (1806148826)
+ * @version 210617
+ */
 public class JobSelesaiActivity extends AppCompatActivity
 implements Response.ErrorListener
 {
+    /** konstan untuk status Cancelled */
     private static final int STATUS_CANCELLED = 0;
+    /** konstan untuk status Finished */
     private static final int STATUS_FINISHED = 1;
 
+    /** InvoiceJob yang ditampilkan */
     private InvoiceJob inv = null;
+    /** button Cancel */
     private Button btnCancel;
+    /** button Finish */
     private Button btnFinish;
+    /** button Return */
     private Button btnReturn;
 
+    /** dipanggil saat activity dibangun */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +70,7 @@ implements Response.ErrorListener
         setReadOnly(getIntent().getBooleanExtra("readOnly", true));
     }
 
+    /** read only tidak boleh ada perintah untuk cancel dan finish, hanya return */
     public void setReadOnly(boolean readOnly) {
         if (readOnly)
         {
@@ -74,39 +86,53 @@ implements Response.ErrorListener
         }
     }
 
+    /** saat return button di click, sudahi activity */
     private void onReturnClick(View view) {
         super.finish();
     }
 
+    /** saat cancel button di click, request untuk ubah status invoice melaui JobBatalRequest
+     * @see JobBatalRequest */
     private void onCancelClick(View view) {
         JobBatalRequest req = new JobBatalRequest(inv.id, this::onCancelResponse, this);
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(req);
     }
 
+    /** saat finish button di click, request untuk ubah status invoice melaui JobSelesaiRequest
+     * @see JobSelesaiRequest */
     private void onFinishClick(View view) {
         JobSelesaiRequest req = new JobSelesaiRequest(inv.id, this::onFinishResponse, this);
         RequestQueue queue = Volley.newRequestQueue(this);
         queue.add(req);
     }
 
+    /** mengubah kontent TextView (diambil dari id) dengan text */
     private void setText(int id, int text) {
         setText(id, String.valueOf(text));
     }
 
+    /** mengubah kontent TextView (diambil dari id) dengan text */
     private void setText(int id, String text) {
         TextView view = findViewById(id);
         view.setText(text);
     }
 
+    /** memproses saat cancel button respon
+     * @param response Response.Listener<String> dari VolleyRequest */
     private void onCancelResponse(String response) {
         processResponse(response, STATUS_CANCELLED);
     }
 
+    /** memproses saat finish button respon
+     * @param response Response.Listener<String> dari VolleyRequest */
     private void onFinishResponse(String response) {
         processResponse(response, STATUS_FINISHED);
     }
 
+    /** proses response dengan mengubah tampilan dan memperbaru HistoryActivity
+     * @param response Response.Listener<String> dari VolleyRequest
+     * @param status perubahan status pada invoice yang dilakukan */
     private void processResponse(String response, int status)  {
         if (response.isEmpty())
         {
@@ -127,6 +153,7 @@ implements Response.ErrorListener
         HistoryActivity.swapCategory(inv.id, fromSel, toSel);
     }
 
+    /** saat tombol back di click, sudahi activity */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
@@ -136,6 +163,7 @@ implements Response.ErrorListener
         return super.onOptionsItemSelected(item);
     }
 
+    /** tampilkan pesan error saat terjadi kegagalan koneksi */
     @Override
     public void onErrorResponse(VolleyError error) {
         Toast.makeText(this, "Connection Error", Toast.LENGTH_LONG).show();
